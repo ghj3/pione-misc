@@ -1,0 +1,47 @@
+param $SCALE_OPTIONS := "--pixels 500000"
+
+Rule Main
+  input '*.jpg' or '*.jpeg' or '*.png' or '*.gif'
+  output '{$*}.mrc'
+Flow
+  rule AnyToPnm
+  rule PnmScale
+  rule PnmToMrc
+End
+
+Rule AnyToPnm
+  input '*.jpg' or '*.jpeg' or '*.png' or '*.gif'
+  output '{$*}.pnm'
+Action
+  anytopnm {$I[1]} > {$O[1]}
+End
+
+Rule PnmScale
+  input '*.pnm'.except('*.scaled.pnm')
+  output '{$*}.scaled.pnm'
+Action
+  pnmscale {$SCALE_OPTIONS} {$I[1]} > {$O[1]}
+End
+
+Rule PnmToMrc
+  input '*.scaled.pnm'
+  output '{$*}.mrc'
+Flow
+  rule PnmToTiff
+  rule TiffToMrc
+End
+
+Rule PnmToTiff
+  input '*.scaled.pnm'
+  output '{$*}.tiff'
+Action
+  pnmtotiff {$I[1]} > {$O[1]}
+End
+
+Rule TiffToMrc
+  input '*.tiff'
+  output '{$*}.mrc'
+Action
+  tiff2mrc -i {$I[1]} -o {$O[1]}
+End
+
